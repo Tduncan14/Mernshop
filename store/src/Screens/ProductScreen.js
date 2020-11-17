@@ -1,36 +1,38 @@
 import React ,{useState,useEffect} from 'react';
 import {Link} from 'react-router-dom'
-import {Row,Col,Image,ListGroup,Card,Button} from 'react-bootstrap';
+import {Row,Col,Image,ListGroup,Card,Button, Form} from 'react-bootstrap';
 import Rating from '../Components/Rating';
+import {useDispatch,useSelector} from 'react-redux';
 // import products from '../product';
-import Axios from 'axios';
+// import Axios from 'axios';
+import{listProductDetails} from '../actions/productActions';
+import Loading from '../Components/Loading';
+import Message from '../Components/Message';
 
 
 const ProductScreen = ({match}) => {
 
+    const [qty,setQty] = useState(0);
 
-    const [product,setProduct] = useState({})
+    const dispatch = useDispatch()
+
+    const productDetails = useSelector(state => state.productDetails)
+    const {loading,error,product} = productDetails
+ 
+
+    
+    // const [product,setProduct] = useState({})
 
 
      useEffect(() =>{
 
-       const fetchProduct = async() => {
-
-         const { data } = await Axios.get(`/api/products/${match.params.id}`)
-
-         console.log(data,'this is the data')
-
-        //  const filterArray = data.find(f => f._id === match.params.id)
-
-         setProduct(data)
-
-     }
-       fetchProduct()
+      dispatch(listProductDetails(match.params.id))
+     
     
-    },[match])
+    },[dispatch,match])
 
     
-    
+
 
    return(
        <div>
@@ -38,8 +40,8 @@ const ProductScreen = ({match}) => {
         <Link className ='btn btn-dark my-3' to = '/'>
             Go Back
         </Link>
-
-        <Row>
+        {loading ? <Loading /> : error ? <Message variant='danger'>{error}</Message> :(
+            <Row>
             <Col md={6}>
 
                 <Image src={product.image} fluid />
@@ -92,10 +94,33 @@ const ProductScreen = ({match}) => {
                                 </Col>
 
                                 <Col>
-                                <strong>{product.countInStock > 0 ? 'In Stock' : 'Out Of Stock'}</strong>
+                                <strong>{product.StockinCount > 0 ? 'In Stock' : 'Out Of Stock'}</strong>
                                 </Col>
                             </Row>
                         </ListGroup.Item>
+
+                        {product.StockinCount > 0 &&(
+                            <ListGroup.Item>
+                               <Row>
+                                   <Col>Qty</Col>
+                                   <Col>
+                                     <Form.Control as='select' value = {qty} onChange={(e) =>
+                                     setQty(e.target.value)}>
+
+                                      {
+                                         [...Array(product.StockinCount).keys()].map(x => (
+                                             <option key={x + 1} value={x + 1}>
+                                                 {x + 1}
+                                             </option>
+                                         ))
+}
+                                     </Form.Control>
+                                   
+                                   </Col>
+                               </Row>
+
+                            </ListGroup.Item>
+                        )}
 
                         <ListGroup.Item>
                             <Button className='btn-block' type='button' disabled={product.countInStock === 0} >
@@ -109,6 +134,9 @@ const ProductScreen = ({match}) => {
 
         </Row>
 
+        )}
+        
+        
        </div>
    )
 

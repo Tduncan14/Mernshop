@@ -10,7 +10,8 @@ const asyncHandler = require('express-async-handler');
 
 
 router.get('/',asyncHandler(async (req,res)=> {
-
+  
+    // throw new Error
     // mongoose schema finding object
     const products =  await Product.find({})
 
